@@ -2,6 +2,7 @@ import sys
 import requests
 import os
 from tabulate import tabulate
+import time
 
 
 def main() -> int:
@@ -16,6 +17,7 @@ def main() -> int:
             json={'address': miner})
 
     for page in range(r.json()['data'] // pageSize + 1):
+        time.sleep(2)
         r = requests.post(
                 'https://api.filscout.com/api/v1/transaction',
                 json={
