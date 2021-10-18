@@ -6,14 +6,15 @@ from tabulate import tabulate
 
 def main() -> int:
     miner = 'f0111584'
-    pageSize = 100
     startHeight = 1176254
     totalConsume = 0
-    lastHeight = -1
+    pageSize = 100
+    processed = {}
 
     r = requests.post(
             'https://api.filscout.com/api/v1/transaction/count',
             json={'address': miner})
+
     for page in range(r.json()['data'] // pageSize + 1):
         r = requests.post(
                 'https://api.filscout.com/api/v1/transaction',
@@ -26,13 +27,14 @@ def main() -> int:
             if data['height'] < startHeight:
                 break
 
-            if lastHeight <= data['height'] and 0 <= lastHeight:
-                continue
-
             print('cid: ', data['cid'], '   height', data['height'])
 
             if data['cid'] == 'N/A':
                 print(' ', data['type'], data['value'])
+                continue
+
+            if data['cid'] in processed:
+                print('{} already processed' . format(data['cid']))
                 continue
 
             r1 = requests.get(os.path.join('https://api.filscout.com/api/v1/transaction', data['cid']))
@@ -50,7 +52,7 @@ def main() -> int:
 
             print(tabulate(dataArray, headers=['from', 'to', 'value', 'penalty', 'type'], tablefmt='orgtbl'))
 
-            lastHeight = data['height']
+            processed[data['cid']] = 1
 
     print('{} consume {} FIL from {}' . format(miner, totalConsume, startHeight))
 
